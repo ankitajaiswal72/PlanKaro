@@ -1,0 +1,159 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlanKaro</title>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: url('{% static "images/kk.jpeg" %}') no-repeat center center/cover;; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { width: 90%; max-width: 900px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); opacity: 0.9;}
+        .navbar { display: flex; justify-content: space-between; padding: 10px; }
+        .navbar a { text-decoration: none; color: #333; margin: 0 10px; font-weight: bold; }
+        .header { display: flex; align-items: center; gap: 20px; padding: 20px; }
+        .header img { width: 250px; border-radius: 10px; }
+        .content { max-width: 500px; }
+        .content h1 { font-size: 28px; color: #333; }
+        .content span { color: rgb(182, 26, 11); font-weight: bold; }
+        .content p { font-size: 14px; color: #666; margin: 10px 0; }
+        .form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .form input, .form button { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .form button { background: rgb(41, 205, 234); color: white; font-weight: bold; cursor: pointer; }
+        .icons { display: flex; gap: 10px; margin-top: 10px; }
+        .suggestions {position: absolute; background: white; border: 1px solid #ddd; max-height: 150px; overflow-y: auto; width: 80px; box-shadow: 0px 2px 5px rgba(0,0,0,0.2); border-radius: 5px; z-index: 10;}
+        .suggestions div { padding: 10px; cursor: pointer;}
+        .suggestions div:hover { background: #f1f1f1;}        
+        .input-wrapper { position: relative;  display: inline-block; width: 400px; }
+        .ui-autocomplete {width: 100% !important; max-height: 200px; overflow-y: auto; border: 1px solid #ccc;  background: white; font-size: 16px;}
+        .transport-options { display: flex; gap: 20px; justify-content: center; margin: 20px 0; margin-bottom: 10px;}
+        .transport-option { display: flex; flex-direction: column; align-items: center; cursor: pointer; border: 2px solid transparent; padding: 10px; border-radius: 10px; transition: 0.3s;}
+        .transport-option img { width: 50px; height: 30px; transition: 0.3s;}
+        .transport-option span {margin-top: 5px;font-weight: bold;}
+        .transport-option.selected { border-color: #007bff; background: rgba(0, 123, 255, 0.1);}
+        .transport-option:hover { transform: scale(1.1);}
+        .transport-option input { display: none; }
+        .book-btn { display: block; background: #007bff; color: white; margin-top:5px; padding: 10px 20px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; transition: 0.3s;}
+        .book-btn:hover { background: #0056b3;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <div>
+                <a href="{%url 'home' %}">Home</a>
+                <a href="{% url 'search_results' %}">Ticket</a>
+                <a href="#">Help</a>
+                <a href="#">Contact</a>
+            </div>
+            <div>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a href="{% url 'register' %}">Register</a>
+                    <a href="{% url 'login' %}">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="header">
+            <img src="{% static 'images/oio.jpeg' %}" alt="Traveler">
+            <div class="content">
+                <h1>Going Somewhere? <br>Book Your <span>Tickets</span> Here!</h1>
+                <form method="GET" action="{% url 'search_results' %}" class="form">
+                    <div class="input-wrapper">
+                        <input type="text" name="source" id="source" placeholder="Enter Source Location" onkeyup="fetchLocationSuggestions(this, 'source-suggestions')" required style="width:100%">
+                        <div id="source-suggestions" class="suggestions"></div>
+                    </div>
+                    <div>
+                        <input type="text" name="query" id="query" placeholder="Enter Destination Location" onkeyup="fetchLocationSuggestions(this, 'destination-suggestions')" required style="width:100%">
+                        <div id="destination-suggestions" class="suggestions"></div>
+                    </div>    
+                    <input type="date" name="date" required>
+                    <div class="transport-options">
+                        <label class="transport-option">
+                            <input type="radio" name="transport" value="Flight">
+                            <img src="{% static 'images/flight.png' %}" alt="Flight">
+                            <span>Flight</span>
+                        </label>
+
+                        <label class="transport-option">
+                            <input type="radio" name="transport" value="Train">
+                            <img src="{% static 'images/train.png' %}" alt="Train">
+                            <span>Train</span>
+                        </label>
+
+                        <label class="transport-option">
+                            <input type="radio" name="transport" value="Bus">
+                            <img src="{% static 'images/bus.jpeg' %}" alt="Bus">
+                            <span>Bus</span>
+                        </label>
+                    </div>
+                        <button type="submit">Search</button>
+                </form>
+                {% if query %}
+                    <h3>Results for "{{ query }}"</h3>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script>
+        // Select all transport options
+        const transportOptions = document.querySelectorAll(".transport-option");
+
+        transportOptions.forEach(option => {
+            option.addEventListener("click", function() {
+                // Remove selected class from all
+                transportOptions.forEach(opt => opt.classList.remove("selected"));
+                // Add selected class to the clicked one
+                this.classList.add("selected");
+                // Set the radio input as checked
+                this.querySelector("input").checked = true;
+            });
+        });
+        function proceedToBooking() {
+            const selectedTransport = document.querySelector("input[name='transport']:checked");
+            if (selectedTransport) {
+                alert(`Proceeding with ${selectedTransport.value}.`);
+                window.location.href = "{% url 'fare_page' %}";
+            } else {
+                alert("Please select a transport mode before booking.");
+            }
+        }
+    </script>
+     <script>
+        function fetchLocationSuggestions(inputElement, suggestionBoxId) {
+        let query = inputElement.value.trim();
+        if (query.length < 3) return;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`, {
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            let suggestionsBox = document.getElementById(suggestionBoxId);
+            suggestionsBox.innerHTML = ""; // Clear previous suggestions
+
+            if (data.length === 0) {
+                suggestionsBox.innerHTML = "<div>No results found</div>";
+                return;
+            }
+
+            data.forEach(place => {
+                let option = document.createElement("div");
+                option.innerText = place.display_name;
+                option.onclick = function () {
+                    inputElement.value = place.display_name;
+                    suggestionsBox.innerHTML = ""; // Hide suggestions
+                };
+                suggestionsBox.appendChild(option);
+            });
+        })
+        .catch(error => console.error("Error fetching locations:", error));
+    }
+
+    </script>   
+</body>
+</html>

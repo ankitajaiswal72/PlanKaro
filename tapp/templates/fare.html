@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fare Details</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Your Selected Travel Options</h2>
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Date</th>
+                <th>Price</th>
+                <th>Seats</th>
+            </tr>
+            {% for booking in bookings %}
+            <tr>
+                <td>{{ booking.travel_option.type }}</td>
+                <td>{{ booking.travel_option.source }}</td>
+                <td>{{ booking.travel_option.destination }}</td>
+                <td>{{ booking.travel_option.date_time</booking> }}</td>
+                <td>₹{{ booking.total_price }}</td>
+                <td>{{ booking.num_seats }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <button onclick="confirmBooking()">Confirm Booking</button>
+    </div>
+
+    <script>
+        function confirmBooking() {
+            alert("Booking Confirmed!");
+            window.location.href = "{% url 'home' %}";
+        }
+    </script>
+</body>
+</html>

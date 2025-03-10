@@ -1,0 +1,142 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            background: url("{% static 'images/jki.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .filters {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.1);
+        }
+        .filters label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .filters input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 120px;
+        }
+        .apply-btn {
+            padding: 8px 15px;
+            background: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .apply-btn:hover {
+            background: darkgreen;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #007BFF;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .book-btn {
+            padding: 8px 12px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .book-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Apply Filters Box Above -->
+        <div class="filters">
+            <h3>Apply Filters:</h3>
+            <form method="GET">
+                <label>Min Price:</label>
+                <input type="number" name="min_price" value="{{ request.GET.min_price|default:3000 }}" required>
+                
+                <label>Max Price:</label>
+                <input type="number" name="max_price" value="{{ request.GET.max_price|default:10000 }}" required>
+                
+                <label>Min Seats:</label>
+                <input type="number" name="min_seats" value="{{ request.GET.min_seats|default:1 }}" required>
+
+                <button type="submit" class="apply-btn">Apply Filters</button>
+            </form>
+        </div>
+
+        <!-- Search Results Table -->
+        <h2>Search Results</h2>
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Date</th>
+                <th>Price</th>
+                <th>Seats Available</th>
+                <th>Action</th>
+            </tr>
+            {% if travel_options %}
+                {% for option in travel_options %}
+                <tr>
+                    <td>{{ option.type }}</td>
+                    <td>{{ option.source }}</td>
+                    <td>{{ option.destination }}</td>
+                    <td>{{ option.date }}</td>
+                    <td>₹{{ option.price }}</td>
+                    <td>{{ option.available_seats }}</td>
+                    <td><a href="{% url 'login' %}?next={% url 'book_tickets' option.travel_id %}">Book Now</a></td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: red;">No results found. Try different filters.</td>
+                </tr>
+            {% endif %}
+        </table>
+    </div>
+</body>
+</html>
